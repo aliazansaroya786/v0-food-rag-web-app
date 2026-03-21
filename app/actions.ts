@@ -2,7 +2,7 @@
 
 import { generateText } from "ai"
 import { createGroq } from "@ai-sdk/groq"
-import { Index } from "@upstash/search"
+import { Search } from "@upstash/search"
 
 export interface SearchResult {
   id: string
@@ -25,7 +25,7 @@ const groq = createGroq({
   apiKey: process.env.GROQ_API_KEY,
 })
 
-const searchIndex = new Index({
+const searchIndex = new Search({
   url: process.env.UPSTASH_SEARCH_REST_URL,
   token: process.env.UPSTASH_SEARCH_REST_TOKEN,
 })
