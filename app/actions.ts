@@ -2,7 +2,7 @@
 
 import { generateText } from "ai"
 import { createGroq } from "@ai-sdk/groq"
-import { Search } from "@upstash/search"
+import { Index } from "@upstash/vector"
 
 export interface SearchResult {
   id: string
@@ -25,21 +25,23 @@ const groq = createGroq({
   apiKey: process.env.GROQ_API_KEY,
 })
 
-const searchIndex = new Search({
+const index = new Index({
   url: process.env.UPSTASH_SEARCH_REST_URL,
   token: process.env.UPSTASH_SEARCH_REST_TOKEN,
 })
 
 async function vectorSearch(question: string): Promise<SearchResult[]> {
-  const results = await searchIndex.search({
-    query: question,
-    limit: 3,
+  const results = await index.query({
+    data: question,
+    topK: 3,
+    includeMetadata: true,
+    includeData: true,
   })
 
   return results.map((result) => ({
-    id: result.id,
+    id: String(result.id),
     score: result.score,
-    content: result.content,
+    content: result.data,
     metadata: result.metadata as SearchResult["metadata"],
   }))
 }
