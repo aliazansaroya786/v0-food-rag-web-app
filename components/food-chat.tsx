@@ -70,7 +70,7 @@ export function FoodChat() {
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
-          <WelcomeScreen />
+          <WelcomeScreen setInput={setInput} />
         ) : (
           messages.map((message) => (
             <MessageBubble key={message.id} message={message} />
@@ -117,7 +117,16 @@ export function FoodChat() {
   )
 }
 
-function WelcomeScreen() {
+function WelcomeScreen({ setInput }: { setInput: (value: string) => void }) {
+  const handleSuggestionClick = (text: string) => {
+    setInput(text)
+    // Auto-submit after a short delay to allow state update
+    setTimeout(() => {
+      const form = document.querySelector('form') as HTMLFormElement
+      if (form) form.requestSubmit()
+    }, 100)
+  }
+
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-8">
       <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
@@ -135,23 +144,26 @@ function WelcomeScreen() {
         <SuggestionCard
           icon={<Leaf className="w-4 h-4" />}
           text="What yellow fruits are there?"
+          onClick={() => handleSuggestionClick("What yellow fruits are there?")}
         />
         <SuggestionCard
           icon={<Sparkles className="w-4 h-4" />}
           text="Tell me about tropical foods"
+          onClick={() => handleSuggestionClick("Tell me about tropical foods")}
         />
         <SuggestionCard
           icon={<BookOpen className="w-4 h-4" />}
           text="What foods are spicy?"
+          onClick={() => handleSuggestionClick("What foods are spicy?")}
         />
       </div>
     </div>
   )
 }
 
-function SuggestionCard({ icon, text }: { icon: React.ReactNode; text: string }) {
+function SuggestionCard({ icon, text, onClick }: { icon: React.ReactNode; text: string; onClick: () => void }) {
   return (
-    <Card className="cursor-pointer hover:bg-secondary/80 transition-colors">
+    <Card className="cursor-pointer hover:bg-secondary/80 transition-colors" onClick={onClick}>
       <CardContent className="flex items-center gap-3 p-4">
         <div className="text-primary">{icon}</div>
         <span className="text-sm text-foreground">{text}</span>
