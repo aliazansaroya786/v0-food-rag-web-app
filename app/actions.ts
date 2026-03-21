@@ -2,6 +2,7 @@
 
 import { generateText } from "ai"
 import { createGroq } from "@ai-sdk/groq"
+import { Index } from "@upstash/search"
 
 export interface SearchResult {
   id: string
@@ -11,6 +12,7 @@ export interface SearchResult {
     region?: string
     type?: string
   }
+  content?: string
 }
 
 export interface RAGResponse {
@@ -23,34 +25,23 @@ const groq = createGroq({
   apiKey: process.env.GROQ_API_KEY,
 })
 
+const searchIndex = new Index({
+  url: process.env.UPSTASH_SEARCH_REST_URL,
+  token: process.env.UPSTASH_SEARCH_REST_TOKEN,
+})
+
 async function vectorSearch(question: string): Promise<SearchResult[]> {
-  const url = process.env.UPSTASH_SEARCH_REST_URL
-  const token = process.env.UPSTASH_SEARCH_REST_TOKEN
-
-  if (!url || !token) {
-    throw new Error("Upstash Search credentials not configured")
-  }
-
-  const response = await fetch(`${url}/query-data`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      data: question,
-      topK: 3,
-      includeMetadata: true,
-    }),
+  const results = await searchIndex.search({
+    query: question,
+    limit: 3,
   })
 
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`Vector search failed: ${errorText}`)
-  }
-
-  const data = await response.json()
-  return data.result || []
+  return results.map((result) => ({
+    id: result.id,
+    score: result.score,
+    content: result.content,
+    metadata: result.metadata as SearchResult["metadata"],
+  }))
 }
 
 export async function ragQuery(question: string): Promise<RAGResponse> {
@@ -64,10 +55,11 @@ export async function ragQuery(question: string): Promise<RAGResponse> {
   // Step 2: Build context from search results
   const context = searchResults
     .map((result, index) => {
-      const text = result.metadata?.text || "No content available"
-      const region = result.metadata?.region || "Unknown"
-      const type = result.metadata?.type || "Unknown"
-      return `[${index + 1}] ${text} (Region: ${region}, Type: ${type})`
+      const text = result.content || result.metadata?.text || "No content available"
+      const region = result.metadata?.region || ""
+      const type = result.metadata?.type || ""
+      const metaInfo = [region, type].filter(Boolean).join(", ")
+      return `[${index + 1}] ${text}${metaInfo ? ` (${metaInfo})` : ""}`
     })
     .join("\n")
 

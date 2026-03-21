@@ -205,7 +205,7 @@ function MessageBubble({ message }: { message: Message }) {
                         )}
                       </div>
                       <p className="text-foreground">
-                        {source.metadata?.text || "No content"}
+                        {source.content || source.metadata?.text || "No content"}
                       </p>
                     </div>
                   ))}
