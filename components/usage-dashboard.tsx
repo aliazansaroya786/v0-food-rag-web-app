@@ -1,21 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getUsageStats, resetUsageStats, getLastSevenDaysStats } from "@/lib/usage-tracker"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { getUsageStats, resetUsageStats } from "@/lib/usage-tracker"
 import { RotateCcw, ChevronDown, ChevronUp } from "lucide-react"
 
 export function UsageDashboard() {
   const [stats, setStats] = useState<ReturnType<typeof getUsageStats> | null>(null)
-  const [sevenDayStats, setSevenDayStats] = useState<ReturnType<typeof getLastSevenDaysStats>>([])
   const [isExpanded, setIsExpanded] = useState(false)
-  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
-    setIsClient(true)
     const loadStats = () => {
       setStats(getUsageStats())
-      setSevenDayStats(getLastSevenDaysStats())
     }
     loadStats()
 
@@ -27,11 +22,10 @@ export function UsageDashboard() {
   const handleReset = () => {
     if (confirm("Are you sure you want to reset all usage statistics?")) {
       setStats(resetUsageStats())
-      setSevenDayStats(getLastSevenDaysStats())
     }
   }
 
-  if (!isClient || !stats) {
+  if (!stats) {
     return null
   }
 
@@ -75,32 +69,6 @@ export function UsageDashboard() {
                 {Math.round(stats.totalResponseTime / 1000)}s
               </p>
             </div>
-          </div>
-
-          {/* 7-Day Chart */}
-          <div className="bg-background rounded-lg p-3">
-            <p className="text-xs font-semibold text-foreground mb-3">Last 7 Days</p>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={sevenDayStats}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis
-                  dataKey="date"
-                  stroke="var(--muted-foreground)"
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(date) => new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                />
-                <YAxis stroke="var(--muted-foreground)" tick={{ fontSize: 12 }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "var(--card)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "var(--radius)",
-                  }}
-                  labelStyle={{ color: "var(--foreground)" }}
-                />
-                <Bar dataKey="queries" fill="var(--primary)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
           </div>
 
           {/* Reset Button */}

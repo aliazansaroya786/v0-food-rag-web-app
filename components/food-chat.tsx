@@ -35,6 +35,10 @@ export function FoodChat({ conversationId, onConversationUpdate }: FoodChatProps
   const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
+  const handleQuery = (query: string) => {
+    setInput(query)
+  }
+
   // Load messages from localStorage
   useEffect(() => {
     const loadMessages = () => {
@@ -51,7 +55,10 @@ export function FoodChat({ conversationId, onConversationUpdate }: FoodChatProps
         setMessages([])
       }
     }
-    loadMessages()
+    // Only load on client side
+    if (typeof window !== "undefined") {
+      loadMessages()
+    }
   }, [conversationId])
 
   const scrollToBottom = () => {
@@ -178,23 +185,26 @@ function WelcomeScreen() {
         <SuggestionCard
           icon={<Leaf className="w-4 h-4" />}
           text="What yellow fruits are there?"
+          onClick={() => handleQuery("What yellow fruits are there?")}
         />
         <SuggestionCard
           icon={<Sparkles className="w-4 h-4" />}
           text="Tell me about tropical foods"
+          onClick={() => handleQuery("Tell me about tropical foods")}
         />
         <SuggestionCard
           icon={<BookOpen className="w-4 h-4" />}
           text="What foods are spicy?"
+          onClick={() => handleQuery("What foods are spicy?")}
         />
       </div>
     </div>
   )
 }
 
-function SuggestionCard({ icon, text }: { icon: React.ReactNode; text: string }) {
+function SuggestionCard({ icon, text, onClick }: { icon: React.ReactNode; text: string; onClick: () => void }) {
   return (
-    <Card className="cursor-pointer hover:bg-secondary/80 transition-colors">
+    <Card className="cursor-pointer hover:bg-secondary/80 transition-colors" onClick={onClick}>
       <CardContent className="flex items-center gap-3 p-4">
         <div className="text-primary">{icon}</div>
         <span className="text-sm text-foreground">{text}</span>

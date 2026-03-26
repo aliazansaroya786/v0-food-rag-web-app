@@ -82,10 +82,6 @@ export default function Home() {
     }
   }
 
-  if (!isClient) {
-    return null
-  }
-
   return (
     <div className="flex flex-col h-screen">
       {/* Header */}
