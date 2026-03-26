@@ -13,15 +13,46 @@ interface Message {
   type: "user" | "assistant"
   content: string
   sources?: RAGResponse["sources"]
-  timestamp: Date
+  timestamp: number
 }
 
-export function FoodChat() {
+export interface ChatSession {
+  id: string
+  title: string
+  messages: Message[]
+  timestamp: number
+}
+
+interface FoodChatProps {
+  conversationId: string
+  onConversationUpdate: (session: ChatSession) => void
+}
+
+export function FoodChat({ conversationId, onConversationUpdate }: FoodChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Load messages from localStorage
+  useEffect(() => {
+    const loadMessages = () => {
+      try {
+        const stored = localStorage.getItem(`conversation-${conversationId}`)
+        if (stored) {
+          const session = JSON.parse(stored) as ChatSession
+          setMessages(session.messages)
+        } else {
+          setMessages([])
+        }
+      } catch (err) {
+        console.error("Failed to load messages:", err)
+        setMessages([])
+      }
+    }
+    loadMessages()
+  }, [conversationId])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -39,10 +70,11 @@ export function FoodChat() {
       id: crypto.randomUUID(),
       type: "user",
       content: input.trim(),
-      timestamp: new Date(),
+      timestamp: Date.now(),
     }
 
-    setMessages((prev) => [...prev, userMessage])
+    const newMessages = [...messages, userMessage]
+    setMessages(newMessages)
     setInput("")
     setError(null)
 
@@ -55,10 +87,21 @@ export function FoodChat() {
           type: "assistant",
           content: response.answer,
           sources: response.sources,
-          timestamp: new Date(),
+          timestamp: Date.now(),
         }
 
-        setMessages((prev) => [...prev, assistantMessage])
+        const updatedMessages = [...newMessages, assistantMessage]
+        setMessages(updatedMessages)
+
+        // Save to localStorage
+        const session: ChatSession = {
+          id: conversationId,
+          title: newMessages[0]?.content?.substring(0, 50) || "New Conversation",
+          messages: updatedMessages,
+          timestamp: Date.now(),
+        }
+        localStorage.setItem(`conversation-${conversationId}`, JSON.stringify(session))
+        onConversationUpdate(session)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong")
       }
