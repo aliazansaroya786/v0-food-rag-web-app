@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { UsageDashboard } from "@/components/usage-dashboard"
 import { Plus, Trash2, MessageSquare } from "lucide-react"
 
 export interface Conversation {
@@ -100,6 +101,9 @@ export function ChatSidebar({
           ))
         )}
       </div>
+
+      {/* Usage Dashboard */}
+      <UsageDashboard />
     </aside>
   )
 }

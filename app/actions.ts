@@ -3,6 +3,7 @@
 import { generateText } from "ai"
 import { createGroq } from "@ai-sdk/groq"
 import { Index } from "@upstash/vector"
+import { trackQuery } from "@/lib/usage-tracker"
 
 export interface SearchResult {
   id: string
@@ -51,6 +52,8 @@ export async function ragQuery(question: string): Promise<RAGResponse> {
     throw new Error("Please enter a question")
   }
 
+  const startTime = Date.now()
+
   // Step 1: Vector search to find relevant documents
   const searchResults = await vectorSearch(question)
 
@@ -73,12 +76,22 @@ Keep your answers concise and informative.
 Context:
 ${context}`
 
-  const { text: answer } = await generateText({
+  const { text: answer, usage } = await generateText({
     model: groq("llama-3.1-8b-instant"),
     system: systemPrompt,
     prompt: question,
     temperature: 0.7,
   })
+
+  const responseTimeMs = Date.now() - startTime
+  const estimatedTokens = Math.ceil((answer.length + question.length) / 4)
+
+  // Track usage (client-side safe wrapper)
+  try {
+    trackQuery(estimatedTokens, responseTimeMs)
+  } catch (err) {
+    console.error("Failed to track usage:", err)
+  }
 
   return {
     sources: searchResults,
