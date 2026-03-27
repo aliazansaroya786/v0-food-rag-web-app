@@ -17,9 +17,9 @@
 
 ## 🌐 Live Demo
 
-🔗 **Live Application:** https://v0-food-rag-web-1btk6pzpt-aliazansaroya786-9170s-projects.vercel.app/  
+🔗 **Live Application:** https://v0-food-rag-web-rkwrfe4h5-aliazansaroya786-9170s-projects.vercel.app/
 🔗 **GitHub Repository:** https://github.com/aliazansaroya786/v0-food-rag-web-app  
-🔗 **v0.dev Project:** https://v0.app/chat/projects/prj_EGpZfskb3IAkoxUKNtBGuRc7Hgzy
+🔗 **v0.dev Project:** https://v0.app/projects/prj_EGpZfskb3IAkoxUKNtBGuRc7Hgzy
 
 ---
 
