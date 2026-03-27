@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Send, Utensils, Leaf, BookOpen, Sparkles } from "lucide-react"
+import { trackQuery } from "@/lib/usage-tracker"
 
 interface Message {
   id: string
@@ -106,6 +107,9 @@ export function FoodChat({ conversationId, onConversationUpdate }: FoodChatProps
 
         const updatedMessages = [...newMessages, assistantMessage]
         setMessages(updatedMessages)
+
+        // Track usage stats
+        trackQuery(response.usage.tokensUsed, response.usage.responseTimeMs)
 
         // Save to localStorage
         const session: ChatSession = {

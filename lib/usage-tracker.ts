@@ -36,28 +36,38 @@ export function trackQuery(
   tokensUsed: number,
   responseTimeMs: number
 ): UsageStats {
-  const stats = getUsageStats()
+  try {
+    const stats = getUsageStats()
 
-  stats.totalQueries += 1
-  stats.totalTokensUsed += tokensUsed
-  stats.totalResponseTime += responseTimeMs
-  stats.averageResponseTime =
-    stats.totalResponseTime / stats.totalQueries
+    stats.totalQueries += 1
+    stats.totalTokensUsed += tokensUsed
+    stats.totalResponseTime += responseTimeMs
+    stats.averageResponseTime =
+      stats.totalResponseTime / stats.totalQueries
 
-  // Track by day
-  const today = new Date().toISOString().split("T")[0]
-  stats.queriesByDay[today] = (stats.queriesByDay[today] || 0) + 1
+    // Track by day
+    const today = new Date().toISOString().split("T")[0]
+    stats.queriesByDay[today] = (stats.queriesByDay[today] || 0) + 1
 
-  stats.lastUpdated = Date.now()
+    stats.lastUpdated = Date.now()
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(stats))
-  return stats
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stats))
+    return stats
+  } catch (err) {
+    console.error("Failed to track usage:", err)
+    return initializeUsageStats()
+  }
 }
 
 export function resetUsageStats(): UsageStats {
-  const newStats = initializeUsageStats()
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(newStats))
-  return newStats
+  try {
+    const newStats = initializeUsageStats()
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newStats))
+    return newStats
+  } catch (err) {
+    console.error("Failed to reset usage stats:", err)
+    return initializeUsageStats()
+  }
 }
 
 export function getLastSevenDaysStats(): Array<{

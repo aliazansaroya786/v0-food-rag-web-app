@@ -3,7 +3,6 @@
 import { generateText } from "ai"
 import { createGroq } from "@ai-sdk/groq"
 import { Index } from "@upstash/vector"
-import { trackQuery } from "@/lib/usage-tracker"
 
 export interface SearchResult {
   id: string
@@ -20,6 +19,10 @@ export interface RAGResponse {
   sources: SearchResult[]
   answer: string
   question: string
+  usage: {
+    tokensUsed: number
+    responseTimeMs: number
+  }
 }
 
 const groq = createGroq({
@@ -86,16 +89,13 @@ ${context}`
   const responseTimeMs = Date.now() - startTime
   const estimatedTokens = Math.ceil((answer.length + question.length) / 4)
 
-  // Track usage (client-side safe wrapper)
-  try {
-    trackQuery(estimatedTokens, responseTimeMs)
-  } catch (err) {
-    console.error("Failed to track usage:", err)
-  }
-
   return {
     sources: searchResults,
     answer,
     question,
+    usage: {
+      tokensUsed: estimatedTokens,
+      responseTimeMs,
+    },
   }
 }

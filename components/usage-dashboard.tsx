@@ -1,16 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getUsageStats, resetUsageStats } from "@/lib/usage-tracker"
+import { getUsageStats, resetUsageStats, getLastSevenDaysStats } from "@/lib/usage-tracker"
 import { RotateCcw, ChevronDown, ChevronUp } from "lucide-react"
 
 export function UsageDashboard() {
   const [stats, setStats] = useState<ReturnType<typeof getUsageStats> | null>(null)
+  const [sevenDayStats, setSevenDayStats] = useState<ReturnType<typeof getLastSevenDaysStats>>([])
   const [isExpanded, setIsExpanded] = useState(false)
 
   useEffect(() => {
     const loadStats = () => {
       setStats(getUsageStats())
+      setSevenDayStats(getLastSevenDaysStats())
     }
     loadStats()
 
@@ -68,6 +70,27 @@ export function UsageDashboard() {
               <p className="text-2xl font-bold text-primary">
                 {Math.round(stats.totalResponseTime / 1000)}s
               </p>
+            </div>
+          </div>
+
+          {/* 7-Day Chart */}
+          <div className="bg-background rounded-lg p-3">
+            <p className="text-xs text-muted-foreground mb-3">Queries (Last 7 Days)</p>
+            <div className="flex items-end justify-between h-20 gap-1">
+              {sevenDayStats.map((day, index) => (
+                <div key={day.date} className="flex flex-col items-center flex-1">
+                  <div
+                    className="bg-primary rounded-t w-full min-h-[4px] transition-all duration-300"
+                    style={{
+                      height: `${Math.max((day.queries / Math.max(...sevenDayStats.map(d => d.queries), 1)) * 60, 4)}px`
+                    }}
+                  />
+                  <span className="text-xs text-muted-foreground mt-1">
+                    {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                  </span>
+                  <span className="text-xs font-medium">{day.queries}</span>
+                </div>
+              ))}
             </div>
           </div>
 
